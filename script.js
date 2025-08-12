@@ -1,98 +1,37 @@
-const pintContainer = document.getElementById('pint-container');
-const beerRect = document.getElementById('beer-rect');
+const beer = document.getElementById('beer');
 const foam = document.getElementById('foam');
-const pourBtn = document.getElementById('pour-btn');
-const cityNameEl = document.getElementById('city-name');
-const barsContainer = document.getElementById('bars');
+const message = document.getElementById('message');
+const pourSound = document.getElementById('pourSound');
+const bubbleSound = document.getElementById('bubbleSound');
 
-const cities = [
-  {
-    name: "London",
-    timezone: "Europe/London",
-    bars: [
-      { name: "The Churchill Arms", address: "119 Kensington Church St" },
-      { name: "The Mayflower", address: "117 Rotherhithe St" },
-      { name: "The Lamb & Flag", address: "33 Rose St" }
-    ]
-  },
-  {
-    name: "New York",
-    timezone: "America/New_York",
-    bars: [
-      { name: "McSorley's Old Ale House", address: "15 E 7th St" },
-      { name: "The Dead Rabbit", address: "30 Water St" },
-      { name: "Employees Only", address: "510 Hudson St" }
-    ]
-  },
-  {
-    name: "Sydney",
-    timezone: "Australia/Sydney",
-    bars: [
-      { name: "The Glenmore", address: "96 Cumberland St" },
-      { name: "Opera Bar", address: "1 Macquarie St" },
-      { name: "The Argyle", address: "18 Argyle St" }
-    ]
-  }
-];
+let filled = false;
 
-// Function to find which city is currently 5 PM
-function findFivePMCity() {
-  const now = new Date();
-  for (let city of cities) {
-    const cityTime = new Date(now.toLocaleString("en-US", { timeZone: city.timezone }));
-    if (cityTime.getHours() === 17) {
-      return city;
-    }
-  }
-  return null;
-}
-
-function displayCityInfo(city) {
-  if (!city) {
-    cityNameEl.textContent = "No city is currently at 5 PM";
-    barsContainer.innerHTML = "";
-    return;
-  }
-  cityNameEl.textContent = `It's 5 PM in ${city.name}!`;
-  barsContainer.innerHTML = "";
-  city.bars.forEach(bar => {
-    const barCard = document.createElement('div');
-    barCard.classList.add('bar-card');
-    barCard.innerHTML = `
-      <div class="bar-name">${bar.name}</div>
-      <div class="bar-address">${bar.address}</div>
-    `;
-    barsContainer.appendChild(barCard);
-  });
-}
-
-// Pint pour animation
-function pourPint() {
-  let height = 0;
-  foam.style.opacity = 0;
-  beerRect.setAttribute('y', 380);
-  beerRect.setAttribute('height', 0);
+document.getElementById('pint').addEventListener('click', () => {
+  if (filled) return;
   
-  const interval = setInterval(() => {
-    if (height >= 360) {
-      foam.style.opacity = 1;
-      clearInterval(interval);
-      displayCityInfo(findFivePMCity());
-    } else {
-      height += 4; // speed of fill
-      beerRect.setAttribute('height', height);
-      beerRect.setAttribute('y', 380 - height);
+  filled = true;
+  pourSound.play();
+  
+  let height = 0;
+  let y = 370;
+  let foamHeight = 0;
+  let foamY = 370;
+  
+  const fill = setInterval(() => {
+    if (height >= 350) {
+      clearInterval(fill);
+      bubbleSound.play();
+      message.textContent = 'Cheers!';
+      return;
     }
-  }, 20);
-}
-
-pourBtn.addEventListener('click', pourPint);
-pintContainer.addEventListener('click', pourPint);
-pintContainer.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' || e.key === ' ') {
-    pourPint();
-  }
+    height += 5;
+    y -= 5;
+    foamHeight = Math.min(height / 4, 20);
+    foamY = y;
+    
+    beer.setAttribute('height', height);
+    beer.setAttribute('y', y);
+    foam.setAttribute('ry', foamHeight);
+    foam.setAttribute('cy', foamY);
+  }, 50);
 });
-
-// Show info on load if any city is 5 PM
-displayCityInfo(findFivePMCity());
